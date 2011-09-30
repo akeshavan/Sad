@@ -39,7 +39,7 @@ def load_data(files):
     return data,idx,img
 
 def do_PCA(data):
-    pca = PCA(n_components = 15)
+    pca = PCA(n_components = data.shape[1])
     pca.fit(data)
     data_red = pca.transform(data)
     return pca, data_red

@@ -39,7 +39,7 @@ def load_data(files):
     return data,idx,img
 
 def do_PCA(data):
-    pca = PCA(n_components = 39)
+    pca = PCA(n_components = 15)
     pca.fit(data)
     data_red = pca.transform(data)
     return pca, data_red
@@ -71,7 +71,7 @@ def do_Lasso_Kfold(y,yname,files,X):
         lasso = do_LASSO(y_cv,desmat_cv)
         output.lasso.append(lasso)
         output.rsq[test] = lasso.score(desmat_cv,y_cv)
-        output.adjrsq[test] = 1 - (1 - output.rsq)*(subject_num-1-1)/(subject_num-1 - lasso.coef_.shape[0] -1)
+        output.adjrsq[test] = 1 - (1 - output.rsq[test])*(subject_num-1-1)/(subject_num-1 - lasso.coef_.shape[0] -1)
         # Prediction
         output.prediction[test] = lasso.predict(test_vec)
         output.pred_errors[test] = y[test] - output.prediction[test]
@@ -94,11 +94,12 @@ if __name__ == "__main__":
     subject_num = len(pdata.subject)
     # initialize dependent variable
     y = pdata.lsas_pre-pdata.lsas_post
-    ind_variables_num = 2 #if change number here, also modify assignments below (and vice versa)
+    ind_variables_num = 3 #if change number here, also modify assignments below (and vice versa)
     # initialize design matrix
     X = np.zeros([subject_num,ind_variables_num])
     X[:,1] = pdata.classtype-2
     X[:,0] = pdata.lsas_pre
+    X[:,2] = pdata.age
     # run this for all the contrasts specified when calling the script
     
     for con in contrasts:
@@ -140,7 +141,7 @@ if __name__ == "__main__":
         """
         output_lasso = do_Lasso_Kfold(y,'lsas_delta',confiles,X)
         output_lasso.write_outputs(condir, 'lassoPCRkfold')
-        output_lasso.draw_plots(condir,str(con),'lassoPCRkfold')
+        output_lasso.draw_plots(condir,str(con),'lassoPCRkfold_age_15')
         
         """
         eigenvalues = pca.explained_variance_ratio_
@@ -151,10 +152,7 @@ if __name__ == "__main__":
         plt.title("Explained variance ratio")
         plt.savefig(os.path.join(condir,"con%s_eigenvalues.pdf"%con),dpi=300,format="pdf")
         """
-        #print("starting crossval")
-        #output = do_R_Crossval(y,'lsas_delta',confiles,X)
-        #print np.sqrt(np.mean(output.pred_errors**2))
-        #output.draw_plots(outdir,'1','PCR')
+    
 
 
 

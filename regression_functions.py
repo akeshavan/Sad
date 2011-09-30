@@ -41,6 +41,8 @@ def do_Regression(y,Vals,gr=0):
     return mult_lm
 
 def do_R_Crossval(y,yname,files,X,gr = 0):
+    from LassoPCR_test import load_data
+    from LassoPCR_test import do_PCA
     subject_num = y.shape[0]
     output = Outputsclass(subject_num,y,yname)
     data, idx, img  = load_data(files)

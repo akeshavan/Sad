@@ -61,7 +61,7 @@ def do_Lasso_Kfold(y,yname,files,X):
         pca, data_red = do_PCA(data[train])
         output.pca.append(pca)
         data_red_test = pca.transform(data[test])
-        # Build design matrix & test vector
+        # Build design matrix & test matrix
         desmat_cv = np.hstack((data_red,X[train]))
         desmat_cv = np.array(desmat_cv)
         y_cv = y[train]
@@ -71,7 +71,7 @@ def do_Lasso_Kfold(y,yname,files,X):
         lasso = do_LASSO(y_cv,desmat_cv)
         output.lasso.append(lasso)
         output.rsq[test] = lasso.score(desmat_cv,y_cv)
-        output.adjrsq[test] = 1 - (1 - output.rsq[test])*(subject_num-1-1)/(subject_num-1 - lasso.coef_.shape[0] -1)
+        output.adjrsq[test] = 1 - (1 - output.rsq[test])*(subject_num-len(test)-1)/(subject_num-len(test) - lasso.coef_.shape[0] -1)
         # Prediction
         output.prediction[test] = lasso.predict(test_vec)
         output.pred_errors[test] = y[test] - output.prediction[test]
@@ -115,6 +115,12 @@ if __name__ == "__main__":
                 os.symlink(fname, newname)
 
         confiles = sorted(glob(os.path.join(condir,'*_con%d.nii'%(con))))
+        
+        output_lasso = do_Lasso_Kfold(y,'lsas_delta',confiles,X)
+        #output_lasso.write_outputs(condir, 'lassoPCRkfold')
+        #output_lasso.draw_plots(condir,str(con),'lassoPCRkfold_age_15')
+        
+        # Whole brain model:
         """
         data, idx, img = load_data(confiles)
         pca, data_red = do_PCA(data)
@@ -138,12 +144,6 @@ if __name__ == "__main__":
         imagefiles.append(nib.Nifti1Image(brain,img.get_affine()))
         imagefiles[0].to_filename(os.path.join(condir,'weighted_image.nii' ))
         
-        """
-        output_lasso = do_Lasso_Kfold(y,'lsas_delta',confiles,X)
-        output_lasso.write_outputs(condir, 'lassoPCRkfold')
-        output_lasso.draw_plots(condir,str(con),'lassoPCRkfold_age_15')
-        
-        """
         eigenvalues = pca.explained_variance_ratio_
         plt.figure()
         plt.plot(eigenvalues,'b*')
